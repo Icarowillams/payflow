@@ -7,6 +7,8 @@ import com.icaro.payflow.entity.User;
 import com.icaro.payflow.exception.BusinessException;
 import com.icaro.payflow.repository.TransactionRepository;
 import com.icaro.payflow.repository.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -16,6 +18,8 @@ import java.util.List;
 
 @Service
 public class TransactionService {
+
+    private static final Logger log = LoggerFactory.getLogger(TransactionService.class);
 
     private final TransactionRepository transactionRepository;
     private final UserRepository userRepository;
@@ -28,6 +32,8 @@ public class TransactionService {
 
     @Transactional
     public TransactionResponse transfer(String senderEmail, TransactionRequest request) {
+        log.info("Iniciando transferência de {} para receiverId={} no valor de {}",
+                senderEmail, request.getReceiverId(), request.getAmount());
 
         User sender = userRepository.findByEmail(senderEmail)
                 .orElseThrow(() -> new BusinessException("Remetente não encontrado."));
@@ -36,10 +42,13 @@ public class TransactionService {
                 .orElseThrow(() -> new BusinessException("Destinatário não encontrado."));
 
         if (sender.getId().equals(receiver.getId())) {
+            log.warn("Tentativa de transferência para si mesmo: {}", senderEmail);
             throw new BusinessException("Não é possível transferir para si mesmo.");
         }
 
         if (sender.getBalance().compareTo(request.getAmount()) < 0) {
+            log.warn("Saldo insuficiente para {}: saldo={}, valor={}",
+                    senderEmail, sender.getBalance(), request.getAmount());
             throw new BusinessException("Saldo insuficiente.");
         }
 
@@ -56,6 +65,9 @@ public class TransactionService {
 
         Transaction saved = transactionRepository.save(transaction);
 
+        log.info("Transferência concluída: id={}, {} -> {}, valor={}",
+                saved.getId(), sender.getName(), receiver.getName(), saved.getAmount());
+
         return new TransactionResponse(
                 saved.getId(),
                 sender.getName(),
@@ -66,6 +78,8 @@ public class TransactionService {
     }
 
     public List<TransactionResponse> getHistory(String email) {
+        log.debug("Buscando histórico de transações para {}", email);
+
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new BusinessException("Usuário não encontrado."));
 
@@ -83,6 +97,8 @@ public class TransactionService {
     }
 
     public Page<TransactionResponse> getHistoryPaginated(String email, Pageable pageable) {
+        log.debug("Buscando histórico paginado para {} - page={}", email, pageable.getPageNumber());
+
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new BusinessException("Usuário não encontrado."));
 
