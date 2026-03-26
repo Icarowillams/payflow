@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [ main ]
 
+permissions:
+  contents: read
+  checks: write
+
 jobs:
   build-and-test:
     name: Build & Test
@@ -53,14 +57,6 @@ jobs:
           JWT_SECRET: ci-test-secret-key-muito-segura-2024
           JWT_EXPIRATION: 86400000
         run: ./mvnw test -B
-
-      - name: Gerar relatório de testes
-        if: always()
-        uses: dorny/test-reporter@v1
-        with:
-          name: Resultados dos Testes
-          path: payflow/target/surefire-reports/*.xml
-          reporter: java-junit
 
   docker-build:
     name: Docker Build
