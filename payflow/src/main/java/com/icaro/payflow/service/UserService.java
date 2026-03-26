@@ -7,7 +7,7 @@ import com.icaro.payflow.exception.BusinessException;
 import com.icaro.payflow.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
+import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 
 @Service
@@ -43,14 +43,30 @@ public class UserService {
     }
 
     public UserResponse findByEmail(String email) {
-    User user = userRepository.findByEmail(email)
-            .orElseThrow(() -> new BusinessException("Usuário não encontrado."));
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new BusinessException("Usuário não encontrado."));
 
-    return new UserResponse(
-            user.getId(),
-            user.getName(),
-            user.getEmail(),
-            user.getBalance()
+        return new UserResponse(
+                user.getId(),
+                user.getName(),
+                user.getEmail(),
+                user.getBalance()
+        );
+    }
+
+    @Transactional
+    public UserResponse deposit(String email, BigDecimal amount) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new BusinessException("Usuário não encontrado."));
+
+        user.setBalance(user.getBalance().add(amount));
+        userRepository.save(user);
+
+        return new UserResponse(
+                user.getId(),
+                user.getName(),
+                user.getEmail(),
+                user.getBalance()
         );
     }
 }
