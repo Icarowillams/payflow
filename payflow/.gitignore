@@ -31,3 +31,9 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Produção ###
+application-prod.properties
+
+### Zip ###
+*.zip
