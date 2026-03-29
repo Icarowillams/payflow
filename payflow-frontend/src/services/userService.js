@@ -7,7 +7,7 @@ export const userService = {
   },
 
   async deposit(amount) {
-    const response = await api.post('/users/me/deposit', { amount });
+    const response = await api.post('/users/deposit', { amount });
     return response.data;
   },
 };
