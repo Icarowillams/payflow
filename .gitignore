@@ -1,1 +1,13 @@
+# Zips
 *.zip
+
+# IDEs
+.vscode/
+.idea/
+
+# Sistemas operacionais
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
